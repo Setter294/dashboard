@@ -196,65 +196,57 @@
   // §03 INGRESOS POR EMPLEADO (PRODUCTIVIDAD)
   // ====================================================================
 
-  function renderProductivity(el, rows, range, ctx, selectedCompanies, t) {
-    const p = palette();
-    const colors = [p.accent, p.blue, p.pos, p.neg, p.purple, '#e07b3a', '#5fb2d4'];
+  function renderProductivity(el, rows, range, ctx, selectedCompanies, t, mode) {
+  const perEmp = (mode || 'perEmp') === 'perEmp';
+  const p = palette();
+  const colors = [p.accent, p.blue, p.pos, p.neg, p.purple, '#e07b3a', '#5fb2d4'];
 
-    // Compute series per company
-    const series = {};
-    rows.forEach(r => {
-      if (!r.revenue_billions_usd || !r.employees_end) return;
-      const mPerEmp = (r.revenue_billions_usd * 1000) / r.employees_end; // M USD / empleado
-      (series[r.company] = series[r.company] || []).push({ year: r.year, v: mPerEmp });
-    });
-    Object.keys(series).forEach(c => series[c].sort((a, b) => a.year - b.year));
+  const valOf = (r) => perEmp ? (r.revenue_billions_usd * 1000) / r.employees_end
+                              : r.revenue_billions_usd;
+  const valid = (r) => perEmp ? (r.revenue_billions_usd && r.employees_end)
+                              : (r.revenue_billions_usd != null);
 
-    // Pick top 8 companies by latest value to avoid spaghetti
-    const cosArr = Object.keys(series);
-    const latestVal = (c) => {
-      const arr = series[c];
-      return arr.length ? arr[arr.length - 1].v : 0;
-    };
-    cosArr.sort((a, b) => latestVal(b) - latestVal(a));
-    const top = cosArr.slice(0, 8);
+  const series = {};
+  rows.forEach(r => { if (valid(r)) (series[r.company] = series[r.company] || []).push({ year: r.year, v: valOf(r) }); });
+  Object.keys(series).forEach(c => series[c].sort((a, b) => a.year - b.year));
 
-    // Mean across selected companies per year
-    const yearMap = {};
-    rows.forEach(r => {
-      if (!r.revenue_billions_usd || !r.employees_end) return;
-      const v = (r.revenue_billions_usd * 1000) / r.employees_end;
-      yearMap[r.year] = yearMap[r.year] || [];
-      yearMap[r.year].push(v);
-    });
-    const meanSeries = Object.keys(yearMap).map(Number).sort((a,b)=>a-b).map(y => ({
-      year: y,
-      v: yearMap[y].reduce((a, b) => a + b, 0) / yearMap[y].length,
-    }));
+  const cosArr = Object.keys(series);
+  const latestVal = (c) => { const a = series[c]; return a.length ? a[a.length - 1].v : 0; };
+  cosArr.sort((a, b) => latestVal(b) - latestVal(a));
+  const top = cosArr.slice(0, 8);
 
-    const traces = top.map((c, i) => ({
-      type: 'scatter', mode: 'lines',
-      x: series[c].map(d => d.year),
-      y: series[c].map(d => d.v),
-      name: c,
-      line: { color: colors[i % colors.length], width: 1.5 },
-      opacity: 0.85,
-      hovertemplate: `<b>${c} · %{x}</b><br>%{y:.2f} M$/${t.lang === 'ca' ? 'empleat' : 'empleado'}<extra></extra>`,
-    }));
-    traces.push({
-      type: 'scatter', mode: 'lines',
-      x: meanSeries.map(d => d.year), y: meanSeries.map(d => d.v),
-      name: t.productivity_mean,
-      line: { color: p.text, width: 3, dash: 'solid' },
-      hovertemplate: `<b>${t.productivity_mean}<br>%{x}</b>: %{y:.2f}<extra></extra>`,
-    });
+  const yearMap = {};
+  rows.forEach(r => { if (valid(r)) (yearMap[r.year] = yearMap[r.year] || []).push(valOf(r)); });
+  const aggSeries = Object.keys(yearMap).map(Number).sort((a, b) => a - b).map(y => {
+    const arr = yearMap[y];
+    const agg = perEmp ? arr.reduce((a, b) => a + b, 0) / arr.length
+                       : arr.reduce((a, b) => a + b, 0);
+    return { year: y, v: agg };
+  });
 
-    const layout = baseLayout({
-      xaxis: Object.assign({}, baseLayout().xaxis, { title: t.year }),
-      yaxis: Object.assign({}, baseLayout().yaxis, { title: t.productivity_y }),
-    });
-    addHistoricalShapes(layout, range, ctx);
-    Plotly.react(el, traces, layout, cfg);
-  }
+  const unit = perEmp ? `M$/${t.lang === 'ca' ? 'empleat' : 'empleado'}` : 'B$';
+  const aggName = perEmp ? t.productivity_mean : t.productivity_sum;
+
+  const traces = top.map((c, i) => ({
+    type: 'scatter', mode: 'lines',
+    x: series[c].map(d => d.year), y: series[c].map(d => d.v),
+    name: c, line: { color: colors[i % colors.length], width: 1.5 }, opacity: 0.85,
+    hovertemplate: `<b>${c} · %{x}</b><br>%{y:.2f} ${unit}<extra></extra>`,
+  }));
+  traces.push({
+    type: 'scatter', mode: 'lines',
+    x: aggSeries.map(d => d.year), y: aggSeries.map(d => d.v),
+    name: aggName, line: { color: p.text, width: 3 },
+    hovertemplate: `<b>${aggName}<br>%{x}</b>: %{y:.2f} ${unit}<extra></extra>`,
+  });
+
+  const layout = baseLayout({
+    xaxis: Object.assign({}, baseLayout().xaxis, { title: t.year }),
+    yaxis: Object.assign({}, baseLayout().yaxis, { title: perEmp ? t.productivity_y : t.productivity_y_total }),
+  });
+  addHistoricalShapes(layout, range, ctx);
+  Plotly.react(el, traces, layout, cfg);
+}
 
   // ====================================================================
   // §04 BOXPLOT
