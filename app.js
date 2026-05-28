@@ -27,6 +27,7 @@
   });
 
   const state = {
+    revMode: 'perEmp',
     lang: localStorage.getItem('var-a-lang') || 'es',
     theme: localStorage.getItem('var-a-theme') || 'dark',
     selected: new Set(allCompanies),
@@ -198,23 +199,33 @@
     });
   }
 
-  function setupCompare() {
-    const a = document.getElementById('cmp-a');
-    const b = document.getElementById('cmp-b');
-    [a, b].forEach(sel => {
-      sel.innerHTML = allCompanies.map(c => `<option value="${c}">${c}</option>`).join('');
+ function setupCompare() {
+  const a = document.getElementById('cmp-a');
+  const b = document.getElementById('cmp-b');
+  [a, b].forEach(sel => {
+    sel.innerHTML = allCompanies.map(c => `<option value="${c}">${c}</option>`).join('');
+  });
+  a.value = state.cmpA; b.value = state.cmpB;
+  a.addEventListener('change', () => { state.cmpA = a.value; renderCompare(); });
+  b.addEventListener('change', () => { state.cmpB = b.value; renderCompare(); });
+  document.querySelectorAll('[data-cmpmode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.cmpMode = btn.dataset.cmpmode;
+      document.querySelectorAll('[data-cmpmode]').forEach(b => b.classList.toggle('active', b.dataset.cmpmode === state.cmpMode));
+      renderCompare();
     });
-    a.value = state.cmpA; b.value = state.cmpB;
-    a.addEventListener('change', () => { state.cmpA = a.value; renderCompare(); });
-    b.addEventListener('change', () => { state.cmpB = b.value; renderCompare(); });
-    document.querySelectorAll('[data-cmpmode]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        state.cmpMode = btn.dataset.cmpmode;
-        document.querySelectorAll('[data-cmpmode]').forEach(b => b.classList.toggle('active', b.dataset.cmpmode === state.cmpMode));
-        renderCompare();
-      });
+  });
+
+  // ===== NUEVO: toggle Ingresos por empleado / Totales (sección 03) =====
+  document.querySelectorAll('[data-revmode]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.revMode = btn.dataset.revmode;
+      document.querySelectorAll('[data-revmode]').forEach(b =>
+        b.classList.toggle('active', b.dataset.revmode === state.revMode));
+      renderProductivity();
     });
-  }
+  });
+}
 
   // ====== MOBILE SIDEBAR DRAWER ======
   function setupSidebarDrawer() {
@@ -394,7 +405,7 @@
     C.renderProductivity(
       document.getElementById('ch-productivity'),
       filtered(), state.range, state.showContext,
-      [...state.selected], t,
+      [...state.selected], t, state.revMode,
     );
   }
 
