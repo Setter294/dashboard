@@ -162,6 +162,8 @@ window.I18N = {
     rev_total: "Totales",
     productivity_y_total: "Ingresos totales (B USD)",
     productivity_sum: "Total agregado seleccionadas",
+    sec_productivity_total: "Ingresos totales",
+    productivity_sub_total: "Ingresos anuales totales (miles de millones USD) por empresa. La línea en negrita es la suma agregada de las empresas seleccionadas.",
   },
 
   ca: {
@@ -309,6 +311,8 @@ window.I18N = {
     rev_total: "Totals",
     productivity_y_total: "Ingressos totals (B USD)",
     productivity_sum: "Total agregat seleccionades",
+    sec_productivity_total: "Ingressos totals",
+    productivity_sub_total: "Ingressos anuals totals (milers de milions USD) per empresa. La línia en negreta és la suma agregada de les empreses seleccionades.",
     nf: "ca-ES",
   }
 };
