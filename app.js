@@ -402,12 +402,15 @@
   // RENDER — §03 PRODUCTIVIDAD
   // ====================================================================
   function renderProductivity() {
-    C.renderProductivity(
-      document.getElementById('ch-productivity'),
-      filtered(), state.range, state.showContext,
-      [...state.selected], t, state.revMode,
-    );
-  }
+  const perEmp = state.revMode === 'perEmp';
+  document.getElementById('prod-title').textContent = perEmp ? t.sec_productivity : t.sec_productivity_total;
+  document.getElementById('prod-sub').textContent   = perEmp ? t.productivity_sub : t.productivity_sub_total;
+  C.renderProductivity(
+    document.getElementById('ch-productivity'),
+    filtered(), state.range, state.showContext,
+    [...state.selected], t, state.revMode,
+  );
+}
 
   // ====================================================================
   // RENDER — §04 BOXPLOT / §05 HEATMAP
