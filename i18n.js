@@ -157,6 +157,11 @@ window.I18N = {
     footer: "Proyecto I — Comprensión de datos · Grado en Ciencia de Datos · UPV ETSINF · 2025-26",
     months: ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
     nf: "es-ES",
+    // New
+    rev_perEmp: "Por empleado",
+    rev_total: "Totales",
+    productivity_y_total: "Ingresos totales (B USD)",
+    productivity_sum: "Total agregado seleccionadas",
   },
 
   ca: {
@@ -300,6 +305,10 @@ window.I18N = {
     insightTitle: "Insights destacats",
     footer: "Projecte I — Comprensió de dades · Grau en Ciència de Dades · UPV ETSINF · 2025-26",
     months: ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"],
+    rev_perEmp: "Per empleat",
+    rev_total: "Totals",
+    productivity_y_total: "Ingressos totals (B USD)",
+    productivity_sum: "Total agregat seleccionades",
     nf: "ca-ES",
   }
 };
